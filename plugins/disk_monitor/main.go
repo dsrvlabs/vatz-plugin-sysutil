@@ -70,15 +70,12 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
         State:      pluginpb.STATE_NONE,
         AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
     }
-	log.Info().Str("module", "plugin").Int("length:", len(mountPaths)).Msg("disk_monitor")
-	for i := 0; i < len(mountPaths); i++ {
-		log.Info().Str("module", "plugin").Msgf("path %d %s", i, mountPaths[i])
-	}
+
 	used := make([]int, len(mountPaths))
 	for i := 0; i < len(mountPaths); i++ {
 		temp, _ := disk.Usage(mountPaths[i])
 		used[i] = int(temp.UsedPercent)
-		log.Debug().Str("module", "plugin").Int("", used[i]).Int("Urgent", urgent).Int("Warning", warning).Msgf("disk_monitor: Disk Usage of %s", mountPaths[i])
+		log.Debug().Str("module", "plugin").Int(mountPaths[i], used[i]).Int("Urgent", urgent).Int("Warning", warning).Msg("disk_monitor: Disk Usage(%) of")
 		if used[i] > urgent {
 			var message string
 			message = fmt.Sprint("Current Disk Usage of ", mountPaths[i], used[i], "%, over urgent threshold ", urgent, "%")
