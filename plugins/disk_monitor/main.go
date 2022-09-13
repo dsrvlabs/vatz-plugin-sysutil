@@ -89,7 +89,7 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 				FuncName:	"getDISKUsgae",
 				Message:	message,
 				Severity:	pluginpb.SEVERITY_CRITICAL,
-				State:		pluginpb.STATE_SUCCESS,
+				State:		pluginpb.STATE_FAILURE,
 				AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 			}
 
