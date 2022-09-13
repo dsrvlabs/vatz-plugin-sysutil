@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"flag"
@@ -71,6 +72,11 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatal().Str("module", "plugin").Msgf("Couldn't get hostname: %v", err)
+	}
+
 	used := make([]int, len(mountPaths))
 	for i := 0; i < len(mountPaths); i++ {
 		temp, _ := disk.Usage(mountPaths[i])
@@ -78,7 +84,7 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 		log.Debug().Str("module", "plugin").Int(mountPaths[i], used[i]).Int("Urgent", urgent).Int("Warning", warning).Msg("disk_monitor: Disk Usage(%) of")
 		if used[i] > urgent {
 			var message string
-			message = fmt.Sprint("Current Disk Usage of ", mountPaths[i], used[i], "%, over urgent threshold ", urgent, "%")
+			message = fmt.Sprint("[", hostname, "]\n", "Current Disk Usage of ", mountPaths[i], used[i], "%, over urgent threshold ", urgent, "%")
 			ret = sdk.CallResponse{
 				FuncName:	"getDISKUsgae",
 				Message:	message,
