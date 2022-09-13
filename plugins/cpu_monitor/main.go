@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"flag"
@@ -58,15 +59,23 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatal().Str("module", "plugin").Msgf("Couldn't get hostname: %v", err)
+	}
+
 	util, _ := cpu.Percent(defaultDuration * time.Second, false)
 	log.Debug().Str("module", "plugin").Int("CPU Usage", int(util[0])).Int("Urgent", urgent).Int("Warning", warning).Msg("cpu_monitor")
 
 	if int(util[0]) > urgent {
 		var message string
-		message = fmt.Sprint("Current CPU Usage is ", int(util[0]), "%, over urgent threshold ", urgent, "%")
+		message = fmt.Sprint("[", hostname, "]\n", "Current CPU Usage is ", int(util[0]), "%, over urgent threshold ", urgent, "%")
 		ret = sdk.CallResponse{
+			FuncName:	"getCPUUsage",
 			Message:	message,
 			Severity:	pluginpb.SEVERITY_CRITICAL,
+			State:		pluginpb.STATE_FAILURE,
+			AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 		}
 
 		log.Warn().Str("module", "plugin").Msg(message)
