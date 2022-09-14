@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"flag"
@@ -56,15 +57,23 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatal().Str("module", "plugin").Msgf("Couldn't get hostname: %v", err)
+	}
+
 	v, _ := mem.VirtualMemory()
 	log.Debug().Str("module", "plugin").Int("Memory Usage", int(v.UsedPercent)).Int("Urgent", urgent).Int("Warning", warning).Msg("mem_monitor")
 
 	if int(v.UsedPercent) > urgent {
 		var message string
-		message = fmt.Sprint("Current Memory Usage is ", int(v.UsedPercent), "%, over urgent threshold ", urgent, "%")
+		message = fmt.Sprint("[", hostname, "]\n", "Current Memory Usage is ", int(v.UsedPercent), "%, over urgent threshold ", urgent, "%")
 		ret = sdk.CallResponse{
+			FuncName:	"getMEMUsage",
 			Message:	message,
 			Severity:	pluginpb.SEVERITY_CRITICAL,
+			State:		pluginpb.STATE_FAILURE,
+			AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 		}
 
 		log.Warn().Str("module", "plugin").Msg(message)
