@@ -1,14 +1,14 @@
-module cpu_monitor
+module github.com/dsrvlabs/vatz-plugin-sysutil
 
 go 1.18
 
 require (
-	github.com/dsrvlabs/vatz-proto v0.0.0-20220420191920-c7decada518f
-	github.com/dsrvlabs/vatz/sdk v0.0.0-20220617031452-1aec4c2a65ca
+	github.com/dsrvlabs/vatz-proto v0.0.0-20220908182122-4c28400b195f
+	github.com/dsrvlabs/vatz/sdk v0.0.0-20221115050851-b57167f7a576
 	github.com/rs/zerolog v1.26.1
-	github.com/shirou/gopsutil/v3 v3.22.5
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
-	google.golang.org/protobuf v1.28.0
+	github.com/shirou/gopsutil/v3 v3.22.10
+	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e
+	google.golang.org/protobuf v1.28.1
 )
 
 require (
@@ -19,9 +19,8 @@ require (
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
+	golang.org/x/sys v0.0.0-20220624220833-87e55d714810 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
-	google.golang.org/grpc v1.45.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc // indirect
+	google.golang.org/grpc v1.49.0 // indirect
 )
