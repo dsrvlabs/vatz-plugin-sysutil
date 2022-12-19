@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"flag"
@@ -49,34 +48,45 @@ func main() {
 
 func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, error) {
 	// TODO: Fill here.
-	ret := sdk.CallResponse{
-		FuncName:	"getMEMUsage",
-		Message:	"Memory usage warning!",
-		Severity:	pluginpb.SEVERITY_UNKNOWN,
-		State:		pluginpb.STATE_NONE,
-		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
-	}
+	severity := pluginpb.SEVERITY_INFO
+	state := pluginpb.STATE_NONE
+	var message string
 
-	hostname, err := os.Hostname()
+	v, err := mem.VirtualMemory()
 	if err != nil {
-		log.Fatal().Str("module", "plugin").Msgf("Couldn't get hostname: %v", err)
-	}
-
-	v, _ := mem.VirtualMemory()
-	log.Debug().Str("module", "plugin").Int("Memory Usage", int(v.UsedPercent)).Int("Urgent", urgent).Int("Warning", warning).Msg("mem_monitor")
-
-	if int(v.UsedPercent) > urgent {
-		var message string
-		message = fmt.Sprint("[", hostname, "]\n", "Current Memory Usage is ", int(v.UsedPercent), "%, over urgent threshold ", urgent, "%")
-		ret = sdk.CallResponse{
-			FuncName:	"getMEMUsage",
-			Message:	message,
+		ret := sdk.CallResponse{
+			FuncName:	info["execute_method"].GetStringValue(),
+			Message:	"failed to get memory usage",
 			Severity:	pluginpb.SEVERITY_CRITICAL,
 			State:		pluginpb.STATE_FAILURE,
 			AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 		}
 
+		return ret, err
+	}
+	state = pluginpb.STATE_SUCCESS
+	usage := int(v.UsedPercent)
+	log.Debug().Str("module", "plugin").Int("Memory Usage", int(v.UsedPercent)).Int("Urgent", urgent).Int("Warning", warning).Msg("mem_monitor")
+
+	if usage < warning {
+		message = fmt.Sprint("Current Memory Usage is ", usage, "%, OK!")
+		severity = pluginpb.SEVERITY_INFO
+	} else if usage < urgent {
+		message = fmt.Sprint("Current Memory Usage is ", usage, "%, over warning threshold ", warning, "%")
+		severity = pluginpb.SEVERITY_WARNING
 		log.Warn().Str("module", "plugin").Msg(message)
+	} else {
+		message = fmt.Sprint("Current Memory Usage is ", usage, "%, over urgent threshold ", urgent, "%")
+		severity = pluginpb.SEVERITY_CRITICAL
+		log.Warn().Str("module", "plugin").Msg(message)
+	}
+
+	ret := sdk.CallResponse{
+		FuncName:	info["execute_method"].GetStringValue(),
+		Message:	message,
+		Severity:	severity,
+		State:		state,
+		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
 	return ret, nil
