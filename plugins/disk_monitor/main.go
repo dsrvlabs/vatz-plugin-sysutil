@@ -116,7 +116,6 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 		statusInfos = append(statusInfos, statusInfo{severity, state, message})
 	}
 
-	//var severity pluginpb.SEVERITY
 	// If we can reached here, state will be STATE_SUCCESS.
 	severity := pluginpb.SEVERITY_INFO
 	state := pluginpb.STATE_SUCCESS
