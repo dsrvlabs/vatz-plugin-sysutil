@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"flag"
@@ -14,6 +13,17 @@ import (
 )
 
 type arrayFlags []string
+
+type mountInfo struct {
+	path string
+	usage int
+}
+
+type statusInfo struct {
+	severity pluginpb.SEVERITY
+	state pluginpb.STATE
+	message string
+}
 
 const (
 	defaultAddr = "127.0.0.1"
@@ -63,38 +73,70 @@ func main() {
 }
 
 func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, error) {
-	// TODO: Fill here.
-	ret := sdk.CallResponse{
-		FuncName:	"getDISKUsage",
-		Message:	"Disk usage warning!",
-		Severity:	pluginpb.SEVERITY_UNKNOWN,
-		State:		pluginpb.STATE_NONE,
-		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
-	}
+	var statusInfos []statusInfo
+	var mountPoints []mountInfo
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Fatal().Str("module", "plugin").Msgf("Couldn't get hostname: %v", err)
-	}
+	// Collect amount of disk usage data from all mountpoints
+	for i, path := range mountPaths {
+		severity := pluginpb.SEVERITY_INFO
+		state := pluginpb.STATE_NONE
+		var message string
 
-	used := make([]int, len(mountPaths))
-	for i := 0; i < len(mountPaths); i++ {
-		temp, _ := disk.Usage(mountPaths[i])
-		used[i] = int(temp.UsedPercent)
-		log.Debug().Str("module", "plugin").Int(mountPaths[i], used[i]).Int("Urgent", urgent).Int("Warning", warning).Msg("disk_monitor: Disk Usage(%) of")
-		if used[i] > urgent {
-			var message string
-			message = fmt.Sprint("[", hostname, "]\n", "Current Disk Usage of ", mountPaths[i], used[i], "%, over urgent threshold ", urgent, "%")
-			ret = sdk.CallResponse{
-				FuncName:	"getDISKUsgae",
+		usageStat, err := disk.Usage(path)
+		if err != nil {
+			message = fmt.Sprint("failed to get disk usage on ", path)
+			ret := sdk.CallResponse{
+				FuncName:	info["execute_method"].GetStringValue(),
 				Message:	message,
 				Severity:	pluginpb.SEVERITY_CRITICAL,
 				State:		pluginpb.STATE_FAILURE,
 				AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 			}
 
+			return ret, err
+		}
+		mountPoints = append(mountPoints, mountInfo{path, int(usageStat.UsedPercent)})
+		log.Debug().Str("module", "plugin").Int(mountPoints[i].path, mountPoints[i].usage).Int("Urgent", urgent).Int("Warning", warning).Msg("disk_monitor: Disk Usage(%) of")
+
+		if mountPoints[i].usage < warning {
+			severity = pluginpb.SEVERITY_INFO
+			state = pluginpb.STATE_SUCCESS
+			message = fmt.Sprint("Current Disk Usage of ", mountPoints[i].path, " ", mountPoints[i].usage, "%, OK!")
+		} else if mountPoints[i].usage < urgent {
+			severity = pluginpb.SEVERITY_WARNING
+			state = pluginpb.STATE_SUCCESS
+			message = fmt.Sprint("Current Disk Usage of ", mountPoints[i].path, " ", mountPoints[i].usage, "%, over warning threshold ", warning, "%")
+			log.Warn().Str("module", "plugin").Msg(message)
+		} else {
+			severity = pluginpb.SEVERITY_CRITICAL
+			state = pluginpb.STATE_SUCCESS
+			message = fmt.Sprint("Current Disk Usage of ", mountPoints[i].path, " ", mountPoints[i].usage, "%, over urgent threshold ", urgent, "%")
 			log.Warn().Str("module", "plugin").Msg(message)
 		}
+		statusInfos = append(statusInfos, statusInfo{severity, state, message})
+	}
+
+	// If we can reached here, state will be STATE_SUCCESS.
+	severity := pluginpb.SEVERITY_INFO
+	state := pluginpb.STATE_SUCCESS
+	var message string
+
+	for i, status := range statusInfos {
+		if severity.Number() > status.severity.Number() {
+			severity = status.severity
+		}
+		log.Debug().Str("module", "plugin").Msgf("%d status.severity %s", i, severity.String())
+		message += status.message + "\n"
+	}
+
+	log.Debug().Str("module", "plugin").Msgf("severity : %s, state : %s, message : %s", severity.String(), state.String(), message)
+
+	ret := sdk.CallResponse{
+		FuncName:	info["execute_method"].GetStringValue(),
+		Message:	message,
+		Severity:	severity,
+		State:		state,
+		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
 	return ret, nil

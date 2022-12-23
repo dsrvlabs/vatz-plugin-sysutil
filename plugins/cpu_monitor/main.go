@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"flag"
@@ -51,34 +50,48 @@ func main() {
 
 func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, error) {
 	// TODO: Fill here.
-	ret := sdk.CallResponse{
-		FuncName:	"getCPUUsage",
-		Message:	"CPU usage warning!",
-		Severity:	pluginpb.SEVERITY_UNKNOWN,
-		State:		pluginpb.STATE_NONE,
-		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
-	}
+	severity := pluginpb.SEVERITY_INFO
+	state := pluginpb.STATE_NONE
+	var message string
 
-	hostname, err := os.Hostname()
+	percent, err := cpu.Percent(defaultDuration * time.Second, false)
 	if err != nil {
-		log.Fatal().Str("module", "plugin").Msgf("Couldn't get hostname: %v", err)
-	}
-
-	util, _ := cpu.Percent(defaultDuration * time.Second, false)
-	log.Debug().Str("module", "plugin").Int("CPU Usage", int(util[0])).Int("Urgent", urgent).Int("Warning", warning).Msg("cpu_monitor")
-
-	if int(util[0]) > urgent {
-		var message string
-		message = fmt.Sprint("[", hostname, "]\n", "Current CPU Usage is ", int(util[0]), "%, over urgent threshold ", urgent, "%")
-		ret = sdk.CallResponse{
-			FuncName:	"getCPUUsage",
-			Message:	message,
+		ret := sdk.CallResponse{
+			FuncName:	info["execute_method"].GetStringValue(),
+			Message:	"failed to get cpu usage",
 			Severity:	pluginpb.SEVERITY_CRITICAL,
 			State:		pluginpb.STATE_FAILURE,
 			AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 		}
 
+		return ret, err
+	}
+
+	util := int(percent[0])
+	log.Debug().Str("module", "plugin").Int("CPU Usage", util).Int("Urgent", urgent).Int("Warning", warning).Msg("cpu_monitor")
+
+	if util < warning {
+		message = fmt.Sprint("Current CPU Usage is ", util, "%, OK!")
+		severity = pluginpb.SEVERITY_INFO
+		state = pluginpb.STATE_SUCCESS
+	} else if util < urgent {
+		message = fmt.Sprint("Current CPU Usage is ", util, "%, over warning threshold ", warning, "%")
+		severity = pluginpb.SEVERITY_WARNING
+		state = pluginpb.STATE_SUCCESS
 		log.Warn().Str("module", "plugin").Msg(message)
+	} else {
+		message = fmt.Sprint("Current CPU Usage is ", util, "%, over urgent threshold ", urgent, "%")
+		severity = pluginpb.SEVERITY_CRITICAL
+		state = pluginpb.STATE_SUCCESS
+		log.Warn().Str("module", "plugin").Msg(message)
+	}
+
+	ret := sdk.CallResponse{
+		FuncName:	info["execute_method"].GetStringValue(),
+		Message:	message,
+		Severity:	severity,
+		State:		state,
+		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
 	return ret, nil
