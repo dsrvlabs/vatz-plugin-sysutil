@@ -9,9 +9,48 @@ vatz plugin for system utilization monitoring
 ## Installation and Usage
 > Please make sure [Vatz](https://github.com/dsrvlabs/vatz) is running with proper configuration. [Vatz Installation Guide](https://github.com/dsrvlabs/vatz/blob/main/docs/installation.md)
 
-### Install
+### Install Plugins
+- Install with source
 ```
+$ git clone https://github.com/dsrvlabs/vatz-plugin-sysutil.git
+$ cd vatz-plugin-sysutil
 $ make install
+```
+- Install with Vatz CLI command
+```
+$ vatz plugin install --help
+Install new plugin
+
+Usage:
+   plugin install [flags]
+
+Examples:
+vatz plugin install github.com/dsrvlabs/<somewhere> name
+
+Flags:
+  -h, --help   help for install
+```
+> Please make sure install path for the plugins repository URL.
+```
+$ vatz plugin install github.com/dsrvlabs/vatz-plugin-sysutil/plugins/cpu_monitor vatz_cpu_monitor
+$ vatz plugin install github.com/dsrvlabs/vatz-plugin-sysutil/plugins/mem_monitor vatz_mem_monitor
+$ vatz plugin install github.com/dsrvlabs/vatz-plugin-sysutil/plugins/disk_monitor vatz_disk_monitor
+```
+- Check plugins list with Vatz CLI command
+```
+$ vatz plugin list
+2023-01-06T03:16:07Z INF List plugins module=plugin
+2023-01-06T03:16:07Z INF List module=plugin
+2023-01-06T03:16:07Z INF newReader /root/.vatz/vatz.db module=db
+2023-01-06T03:16:07Z INF Create DB Instance module=db
+2023-01-06T03:16:07Z INF List Plugin module=db
++---------------------+---------------------+-------------------------------------------------------------------------+---------+
+| NAME                | INSTALL DATA        | REPOSITORY                                                              | VERSION |
++---------------------+---------------------+-------------------------------------------------------------------------+---------+
+| vatz_cpu_monitor    | 2023-01-02 09:12:05 | github.com/dsrvlabs/vatz-plugin-sysutil/plugins/cpu_monitor             | latest  |
+| vatz_mem_monitor    | 2023-01-02 09:12:24 | github.com/dsrvlabs/vatz-plugin-sysutil/plugins/mem_monitor             | latest  |
+| vatz_disk_monitor   | 2023-01-02 09:12:44 | github.com/dsrvlabs/vatz-plugin-sysutil/plugins/disk_monitor            | latest  |
++---------------------+---------------------+-------------------------------------------------------------------------+---------+
 ```
 
 ### Run
