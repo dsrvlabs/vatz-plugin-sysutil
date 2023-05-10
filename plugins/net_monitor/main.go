@@ -89,7 +89,6 @@ func calculateTraffic() {
 			// Check if the line contains network interface statistics
 			if len(fields) > 1 && strings.Contains(fields[0], ":") {
 				iface := strings.Trim(fields[0], ":")
-				log.Info().Str("module", "plugin").Msg(iface)
 				bytesRecv, _ := strconv.ParseInt(fields[1], 10, 64)
 				bytesSent, _ := strconv.ParseInt(fields[9], 10, 64)
 				// Initialize previous byte counts for this interface	
@@ -111,7 +110,6 @@ func calculateTraffic() {
 		// Check if the line contains network interface statistics
 		if len(fields) > 1 && strings.Contains(fields[0], ":") {
 			iface := strings.Trim(fields[0], ":")
-			log.Info().Str("module", "plugin").Msg(iface+"@@")
 			bytesRecv, _ := strconv.ParseInt(fields[1], 10, 64)
 			bytesSent, _ := strconv.ParseInt(fields[9], 10, 64)
 
