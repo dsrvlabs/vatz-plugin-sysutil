@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"flag"
 	"os"
+	"os/signal"
+	"syscall"
 	"strings"
 	"time"
 	"fmt"
@@ -52,22 +54,38 @@ func init() {
 }
 
 func main() {
+	exit := make(chan os.Signal, 1)
+	signal.Notify(exit, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGINT)
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 
 	go func() {
-		for range ticker.C {
-			calculateTraffic()
+		for {
+			select {
+			case <-exit:
+				return
+			case <-ticker.C:
+				calculateTraffic()
+			default:
+			}
 		}
 	}()
 
 	p := sdk.NewPlugin(pluginName)
 	p.Register(pluginFeature)
 
-	ctx := context.Background()
-	if err := p.Start(ctx, addr, port); err != nil {
-		log.Info().Str("module", "plugin").Msg("exit")
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		if err := p.Start(ctx, addr, port); err != nil {
+			log.Info().Str("module", "plugin").Msg("exit")
+		}
+	}()
+
+	<-exit
+	cancel()
+	log.Info().Str("module", "plugin").Msg("exit!!")
 }
 
 func calculateTraffic() {
