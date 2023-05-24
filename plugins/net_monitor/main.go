@@ -22,13 +22,13 @@ const (
 	defaultAddr    = "127.0.0.1"
 	defaultPort    = 9101
 	pluginName     = "vatz-plugin-network-monitor"
-	defaultUrgent  = 100
-	defaultWarning = 95
+	defaultUrgent  = 1000
+	defaultWarning = 100
 )
 
 var (
-	urgent        int
-	warning       int
+	urgent        int64
+	warning       int64
 	addr          string
 	port          int
 	prevRecvBytes	map[string]int64
@@ -47,8 +47,8 @@ func init() {
 
 	flag.StringVar(&addr, "addr", defaultAddr, "Listening address")
 	flag.IntVar(&port, "port", defaultPort, "Listening port")
-	flag.IntVar(&urgent, "urgent", defaultUrgent, "Network Traffic Alert threshold")
-	flag.IntVar(&warning, "warning", defaultWarning, "Network Traffic Warning threshold")
+	flag.Int64Var(&urgent, "urgent", defaultUrgent, "Network Traffic Alert threshold (in MBps)")
+	flag.Int64Var(&warning, "warning", defaultWarning, "Network Traffic Warning threshold (in MBps)")
 
 	flag.Parse()
 }
