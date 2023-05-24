@@ -3,13 +3,13 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
-	"syscall"
-	"strings"
-	"time"
-	"fmt"
 	"strconv"
+	"strings"
+	"syscall"
+	"time"
 
 	pluginpb "github.com/dsrvlabs/vatz-proto/plugin/v1"
 	"github.com/dsrvlabs/vatz/sdk"
@@ -24,17 +24,21 @@ const (
 	pluginName     = "vatz-plugin-network-monitor"
 	defaultUrgent  = 1000
 	defaultWarning = 100
+	INFO           = 0
+	WARNING        = 1
+	CRITICAL       = 2
 )
 
 var (
-	urgent        int64
-	warning       int64
-	addr          string
-	port          int
-	prevRecvBytes	map[string]int64
-	prevSentBytes	map[string]int64
-	recvBytesDiff	map[string]int64
-	sentBytesDiff	map[string]int64
+	urgent           int64
+	warning          int64
+	addr             string
+	port             int
+	prevRecvBytes    map[string]int64
+	prevSentBytes    map[string]int64
+	recvBytesDiff    map[string]int64
+	sentBytesDiff    map[string]int64
+	severity         map[string]int
 	isFirstIteration bool
 )
 
@@ -44,6 +48,7 @@ func init() {
 	prevSentBytes = make(map[string]int64)
 	recvBytesDiff = make(map[string]int64)
 	sentBytesDiff = make(map[string]int64)
+	severity = make(map[string]int)
 
 	flag.StringVar(&addr, "addr", defaultAddr, "Listening address")
 	flag.IntVar(&port, "port", defaultPort, "Listening port")
@@ -56,7 +61,7 @@ func init() {
 func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGINT)
-	ticker := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
 	go func() {
@@ -99,7 +104,7 @@ func calculateTraffic() {
 
 	if isFirstIteration {
 		scanner := bufio.NewScanner(file)
-	
+
 		for scanner.Scan() {
 			line := scanner.Text()
 			fields := strings.Fields(line)
@@ -109,7 +114,7 @@ func calculateTraffic() {
 				iface := strings.Trim(fields[0], ":")
 				bytesRecv, _ := strconv.ParseInt(fields[1], 10, 64)
 				bytesSent, _ := strconv.ParseInt(fields[9], 10, 64)
-				// Initialize previous byte counts for this interface	
+				// Initialize previous byte counts for this interface
 				prevRecvBytes[iface] = bytesRecv
 				prevSentBytes[iface] = bytesSent
 			}
@@ -140,7 +145,7 @@ func calculateTraffic() {
 			sentBytesDiff[iface] = currentSentBytesTotal - prevSentBytesTotal
 
 			// Print statistics
-			log.Debug().Str("module", "plugin").Msgf("%s: received %d bytes, sent %d bytes\n", iface, recvBytesDiff[iface], sentBytesDiff[iface])
+			//log.Debug().Str("module", "plugin").Msgf("%s: received %d bytes, sent %d bytes\n", iface, recvBytesDiff[iface], sentBytesDiff[iface])
 
 			// Update previous byte counts for this interface
 			prevRecvBytes[iface] = currentRecvBytesTotal
@@ -150,24 +155,54 @@ func calculateTraffic() {
 }
 
 func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, error) {
-	severity := pluginpb.SEVERITY_INFO
+	severityTotal := INFO
+	severityToSend := pluginpb.SEVERITY_INFO
 	state := pluginpb.STATE_NONE
 	var message string
 
+	// TODO: handle warning, error threshold
 	for iface, recvBytes := range recvBytesDiff {
 		if sentBytes, ok := sentBytesDiff[iface]; ok {
-			message += fmt.Sprintf("%s: received %d bytes, sent %d bytes\n", iface, recvBytes, sentBytes) 
+			message += fmt.Sprintf("%s: received %d bytes, sent %d bytes\n", iface, recvBytes, sentBytes)
+			if recvBytes < warning && sentBytes < warning {
+				message += fmt.Sprintf("%s: NORMAL\n", iface)
+				severity[iface] = INFO
+			} else if recvBytes > urgent || sentBytes > urgent {
+				message += fmt.Sprintf("%s: CRITICAL\n", iface)
+				severity[iface] = CRITICAL
+			} else {
+				message += fmt.Sprintf("%s: WARNING\n", iface)
+				severity[iface] = WARNING
+			}
+			state = pluginpb.STATE_SUCCESS
+		} else {
+			message += fmt.Sprintf("%s: err to get data\n", iface)
+			severity[iface] = CRITICAL
+			state = pluginpb.STATE_FAILURE
 		}
+
+		if severityTotal < severity[iface] {
+			severityTotal = severity[iface]
+		}
+
+		//message+= fmt.Sprintf("%s: severityTotal: %d\n", iface, severityTotal)
 	}
-	// TODO: handle warning, error threshold
 	log.Debug().Str("module", "plugin").Msg(message)
 
+	if severityTotal == INFO {
+		severityToSend = pluginpb.SEVERITY_INFO
+	} else if severityTotal == WARNING {
+		severityToSend = pluginpb.SEVERITY_WARNING
+	} else {
+		severityToSend = pluginpb.SEVERITY_CRITICAL
+	}
+
 	ret := sdk.CallResponse{
-		FuncName:	info["execute_method"].GetStringValue(),
-		Message:	message,
-		Severity:	severity,
-		State:		state,
-		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+		FuncName:   info["execute_method"].GetStringValue(),
+		Message:    message,
+		Severity:   severityToSend,
+		State:      state,
+		AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
 	return ret, nil
