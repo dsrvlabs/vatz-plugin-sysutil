@@ -163,17 +163,19 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	// TODO: handle warning, error threshold
 	for iface, recvBytes := range recvBytesDiff {
 		if sentBytes, ok := sentBytesDiff[iface]; ok {
-			message += fmt.Sprintf("%s: received %d bytes, sent %d bytes\n", iface, recvBytes, sentBytes)
-			if recvBytes < warning && sentBytes < warning {
+			recvMBytes := recvBytes / 1024 / 1024
+			sentMBytes := sentBytes / 1024 / 1024
+			if recvMBytes < warning && sentMBytes < warning {
 				message += fmt.Sprintf("%s: NORMAL\n", iface)
 				severity[iface] = INFO
-			} else if recvBytes > urgent || sentBytes > urgent {
+			} else if recvMBytes > urgent || sentMBytes > urgent {
 				message += fmt.Sprintf("%s: CRITICAL\n", iface)
 				severity[iface] = CRITICAL
 			} else {
 				message += fmt.Sprintf("%s: WARNING\n", iface)
 				severity[iface] = WARNING
 			}
+			message += fmt.Sprintf("%s: received %d Mbytes, sent %d Mbytes\n", iface, recvMBytes, sentMBytes)
 			state = pluginpb.STATE_SUCCESS
 		} else {
 			message += fmt.Sprintf("%s: err to get data\n", iface)
