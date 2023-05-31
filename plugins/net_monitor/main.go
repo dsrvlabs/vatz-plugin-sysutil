@@ -61,7 +61,7 @@ func init() {
 func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGINT)
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 
 	go func() {
@@ -163,8 +163,8 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	// TODO: handle warning, error threshold
 	for iface, recvBytes := range recvBytesDiff {
 		if sentBytes, ok := sentBytesDiff[iface]; ok {
-			recvMBytes := recvBytes / 1024 / 1024
-			sentMBytes := sentBytes / 1024 / 1024
+			recvMBytes := recvBytes / 1024 / 1024 / 60
+			sentMBytes := sentBytes / 1024 / 1024 / 60
 			if recvMBytes < warning && sentMBytes < warning {
 				message += fmt.Sprintf("%s: NORMAL\n", iface)
 				severity[iface] = INFO
@@ -186,8 +186,6 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 		if severityTotal < severity[iface] {
 			severityTotal = severity[iface]
 		}
-
-		//message+= fmt.Sprintf("%s: severityTotal: %d\n", iface, severityTotal)
 	}
 	log.Debug().Str("module", "plugin").Msg(message)
 
