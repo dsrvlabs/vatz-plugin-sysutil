@@ -1,44 +1,45 @@
 package main
 
 import (
-	"fmt"
-	"github.com/rs/zerolog/log"
 	"flag"
+	"fmt"
+
+	"github.com/rs/zerolog/log"
 
 	pluginpb "github.com/dsrvlabs/vatz-proto/plugin/v1"
 	"github.com/dsrvlabs/vatz/sdk"
+	"github.com/shirou/gopsutil/v3/disk"
 	"golang.org/x/net/context"
 	"google.golang.org/protobuf/types/known/structpb"
-	"github.com/shirou/gopsutil/v3/disk"
 )
 
 type arrayFlags []string
 
 type mountInfo struct {
-	path string
+	path  string
 	usage int
 }
 
 type statusInfo struct {
 	severity pluginpb.SEVERITY
-	state pluginpb.STATE
-	message string
+	state    pluginpb.STATE
+	message  string
 }
 
 const (
-	defaultAddr = "127.0.0.1"
-	defaultPort = 9096
-	pluginName = "vatz-plugin-solana-disk-monitor"
-	defaultUrgent = 95
+	defaultAddr    = "127.0.0.1"
+	defaultPort    = 9003
+	pluginName     = "vatz-plugin-solana-disk-monitor"
+	defaultUrgent  = 95
 	defaultWarning = 90
-	defaultPath = "/"
+	defaultPath    = "/"
 )
 
 var (
-	urgent int
-	warning int
-	addr string
-	port int
+	urgent     int
+	warning    int
+	addr       string
+	port       int
 	mountPaths arrayFlags
 )
 
@@ -86,11 +87,11 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 		if err != nil {
 			message = fmt.Sprint("failed to get disk usage on ", path)
 			ret := sdk.CallResponse{
-				FuncName:	info["execute_method"].GetStringValue(),
-				Message:	message,
-				Severity:	pluginpb.SEVERITY_CRITICAL,
-				State:		pluginpb.STATE_FAILURE,
-				AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+				FuncName:   info["execute_method"].GetStringValue(),
+				Message:    message,
+				Severity:   pluginpb.SEVERITY_CRITICAL,
+				State:      pluginpb.STATE_FAILURE,
+				AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 			}
 
 			return ret, err
@@ -132,11 +133,11 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	log.Debug().Str("module", "plugin").Msgf("severity : %s, state : %s, message : %s", severity.String(), state.String(), message)
 
 	ret := sdk.CallResponse{
-		FuncName:	info["execute_method"].GetStringValue(),
-		Message:	message,
-		Severity:	severity,
-		State:		state,
-		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+		FuncName:   info["execute_method"].GetStringValue(),
+		Message:    message,
+		Severity:   severity,
+		State:      state,
+		AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
 	return ret, nil
