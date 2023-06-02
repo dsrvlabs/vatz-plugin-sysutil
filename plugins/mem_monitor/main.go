@@ -1,30 +1,31 @@
 package main
 
 import (
-	"fmt"
-	"github.com/rs/zerolog/log"
 	"flag"
+	"fmt"
+
+	"github.com/rs/zerolog/log"
 
 	pluginpb "github.com/dsrvlabs/vatz-proto/plugin/v1"
 	"github.com/dsrvlabs/vatz/sdk"
+	"github.com/shirou/gopsutil/v3/mem"
 	"golang.org/x/net/context"
 	"google.golang.org/protobuf/types/known/structpb"
-	"github.com/shirou/gopsutil/v3/mem"
 )
 
 const (
-	defaultAddr = "127.0.0.1"
-	defaultPort = 9095
-	pluginName = "vatz-plugin-solana-mem-monitor"
-	defaultUrgent = 95
+	defaultAddr    = "127.0.0.1"
+	defaultPort    = 9002
+	pluginName     = "vatz-plugin-solana-mem-monitor"
+	defaultUrgent  = 95
 	defaultWarning = 90
 )
 
 var (
-	urgent int
+	urgent  int
 	warning int
-	addr string
-	port int
+	addr    string
+	port    int
 )
 
 func init() {
@@ -55,11 +56,11 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	v, err := mem.VirtualMemory()
 	if err != nil {
 		ret := sdk.CallResponse{
-			FuncName:	info["execute_method"].GetStringValue(),
-			Message:	"failed to get memory usage",
-			Severity:	pluginpb.SEVERITY_CRITICAL,
-			State:		pluginpb.STATE_FAILURE,
-			AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+			FuncName:   info["execute_method"].GetStringValue(),
+			Message:    "failed to get memory usage",
+			Severity:   pluginpb.SEVERITY_CRITICAL,
+			State:      pluginpb.STATE_FAILURE,
+			AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 		}
 
 		return ret, err
@@ -82,11 +83,11 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	}
 
 	ret := sdk.CallResponse{
-		FuncName:	info["execute_method"].GetStringValue(),
-		Message:	message,
-		Severity:	severity,
-		State:		state,
-		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+		FuncName:   info["execute_method"].GetStringValue(),
+		Message:    message,
+		Severity:   severity,
+		State:      state,
+		AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
 	return ret, nil

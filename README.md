@@ -58,49 +58,55 @@ $ vatz plugin list
 ### Run
 > Run as default config
 ```
-$ cpu_monitor
-2022-09-14T08:17:33+02:00 INF Register module=grpc
-2022-09-14T08:17:33+02:00 INF Start 127.0.0.1 9094 module=sdk
-2022-09-14T08:17:33+02:00 INF Start module=grpc
-2022-09-14T08:17:48+02:00 INF Execute module=grpc
-2022-09-14T08:17:48+02:00 DBG cpu_monitor CPU Usage=26 Urgent=95 Warning=90 module=plugin
+$ ./cpu_monitor
+2023-05-31T07:30:21Z INF Register module=grpc
+2023-05-31T07:30:21Z INF Start 127.0.0.1 9001 module=sdk
+2023-05-31T07:30:21Z INF Start module=grpc
+2023-05-31T07:30:54Z INF Execute module=grpc
+2023-05-31T07:30:54Z DBG cpu_monitor CPU Usage=1 Urgent=95 Warning=90 module=plugin
 ```
 ```
-$ disk_monitor
-2022-09-14T08:19:19+02:00 INF Register module=grpc
-2022-09-14T08:19:19+02:00 INF Start 127.0.0.1 9096 module=sdk
-2022-09-14T08:19:19+02:00 INF Start module=grpc
-2022-09-14T08:19:33+02:00 INF Execute module=grpc
-2022-09-14T08:19:33+02:00 DBG disk_monitor: Disk Usage(%) of /=34 Urgent=95 Warning=90 module=plugin
+$ ./mem_monitor
+2023-05-31T07:31:04Z INF Register module=grpc
+2023-05-31T07:31:04Z INF Start 127.0.0.1 9002 module=sdk
+2023-05-31T07:31:04Z INF Start module=grpc
+2023-05-31T07:32:24Z INF Execute module=grpc
+2023-05-31T07:32:24Z DBG mem_monitor Memory Usage=3 Urgent=95 Warning=90 module=plugin
 ```
 ```
-$ mem_monitor
-2022-09-14T08:20:12+02:00 INF Register module=grpc
-2022-09-14T08:20:12+02:00 INF Start 127.0.0.1 9095 module=sdk
-2022-09-14T08:20:12+02:00 INF Start module=grpc
-2022-09-14T08:20:13+02:00 INF Execute module=grpc
-2022-09-14T08:20:13+02:00 DBG mem_monitor Memory Usage=72 Urgent=95 Warning=90 module=plugin 
+$ ./disk_monitor
+2023-05-31T07:33:37Z INF Register module=grpc
+2023-05-31T07:33:37Z INF Start 127.0.0.1 9003 module=sdk
+2023-05-31T07:33:37Z INF Start module=grpc
+2023-05-31T07:33:54Z INF Execute module=grpc
+2023-05-31T07:33:54Z DBG disk_monitor: Disk Usage(%) of /=37 Urgent=95 Warning=90 module=plugin
+2023-05-31T07:33:54Z DBG 0 status.severity INFO module=plugin
+2023-05-31T07:33:54Z DBG severity : INFO, state : SUCCESS, message : Current Disk Usage of / 37%, OK!
 ```
 ```
 $ ./net_monitor
-2023-05-31T02:20:06Z INF Register module=grpc
-2023-05-31T02:20:06Z INF Start 127.0.0.1 9101 module=sdk
-2023-05-31T02:20:06Z INF Start module=grpc
-2023-05-31T02:20:07Z INF Execute module=grpc
-2023-05-31T02:20:07Z DBG  module=plugin
-2023-05-31T02:21:07Z INF Execute module=grpc
-2023-05-31T02:21:07Z DBG  module=plugin
-2023-05-31T02:22:07Z INF Execute module=grpc
-2023-05-31T02:22:07Z DBG mpqemubr0: NORMAL
-mpqemubr0: received 0 Mbytes, sent 0 Mbytes
-lo: NORMAL
+2023-05-31T07:45:19Z INF Register module=grpc
+2023-05-31T07:45:19Z INF Start 127.0.0.1 9004 module=sdk
+2023-05-31T07:45:19Z INF Start module=grpc
+2023-05-31T07:45:46Z INF Execute module=grpc
+2023-05-31T07:45:46Z DBG  module=plugin
+2023-05-31T07:46:16Z INF Execute module=grpc
+2023-05-31T07:46:16Z DBG  module=plugin
+2023-05-31T07:46:46Z INF Execute module=grpc
+2023-05-31T07:46:46Z DBG  module=plugin
+2023-05-31T07:47:16Z INF Execute module=grpc
+2023-05-31T07:47:16Z DBG  module=plugin
+2023-05-31T07:47:46Z INF Execute module=grpc
+2023-05-31T07:47:46Z DBG lo: NORMAL
 lo: received 0 Mbytes, sent 0 Mbytes
 enp4s0: NORMAL
-enp4s0: received 11 Mbytes, sent 0 Mbytes
+enp4s0: received 10 Mbytes, sent 0 Mbytes
 wlp3s0: NORMAL
 wlp3s0: received 0 Mbytes, sent 0 Mbytes
 docker0: NORMAL
 docker0: received 0 Mbytes, sent 0 Mbytes
+mpqemubr0: NORMAL
+mpqemubr0: received 0 Mbytes, sent 0 Mbytes
  module=plugin
 ```
 ## Command line arguments
@@ -110,11 +116,23 @@ Usage of cpu_monitor:
   -addr string
     	Listening address (default "127.0.0.1")
   -port int
-    	Listening port (default 9094)
+    	Listening port (default 9001)
   -urgent int
     	CPU Usage Alert threshold (default 95)
   -warning int
     	CPU Usage Warning threshold (default 90)
+```
+- mem_monitor
+```
+Usage of mem_monitor:
+  -addr string
+    	Listening address (default "127.0.0.1")
+  -port int
+    	Listening port (default 9002)
+  -urgent int
+    	Mem Usage Alert threshold (default 95)
+  -warning int
+    	Mem Usage Warning threshold (default 90)
 ```
 - disk_monitor
 ```
@@ -124,23 +142,11 @@ Usage of disk_monitor:
   -paths value
     	mount paths to check available size (default "/")
   -port int
-    	Listening port (default 9096)
+    	Listening port (default 9003)
   -urgent int
     	Disk Usage Alert threshold (default 95)
   -warning int
     	Disk Usage Warning threshold (default 90)
-```
-- mem_monitor
-```
-Usage of mem_monitor:
-  -addr string
-    	Listening address (default "127.0.0.1")
-  -port int
-    	Listening port (default 9095)
-  -urgent int
-    	Mem Usage Alert threshold (default 95)
-  -warning int
-    	Mem Usage Warning threshold (default 90)
 ```
 - net_monitor
 ```
@@ -148,7 +154,7 @@ Usage of ./net_monitor:
   -addr string
     	Listening address (default "127.0.0.1")
   -port int
-    	Listening port (default 9101)
+    	Listening port (default 9004)
   -urgent int
     	Network Traffic Alert threshold (in MBps) (default 1000)
   -warning int

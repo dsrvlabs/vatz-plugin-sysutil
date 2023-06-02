@@ -1,32 +1,33 @@
 package main
 
 import (
-	"fmt"
-	"github.com/rs/zerolog/log"
 	"flag"
+	"fmt"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	pluginpb "github.com/dsrvlabs/vatz-proto/plugin/v1"
 	"github.com/dsrvlabs/vatz/sdk"
+	"github.com/shirou/gopsutil/v3/cpu"
 	"golang.org/x/net/context"
 	"google.golang.org/protobuf/types/known/structpb"
-	"github.com/shirou/gopsutil/v3/cpu"
 )
 
 const (
-	defaultAddr = "127.0.0.1"
-	defaultPort = 9094
-	pluginName = "vatz-plugin-solana-cpu-monitor"
-	defaultUrgent = 95
-	defaultWarning = 90
+	defaultAddr     = "127.0.0.1"
+	defaultPort     = 9001
+	pluginName      = "vatz-plugin-solana-cpu-monitor"
+	defaultUrgent   = 95
+	defaultWarning  = 90
 	defaultDuration = 0
 )
 
 var (
-	urgent int
+	urgent  int
 	warning int
-	addr string
-	port int
+	addr    string
+	port    int
 )
 
 func init() {
@@ -54,14 +55,14 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	state := pluginpb.STATE_NONE
 	var message string
 
-	percent, err := cpu.Percent(defaultDuration * time.Second, false)
+	percent, err := cpu.Percent(defaultDuration*time.Second, false)
 	if err != nil {
 		ret := sdk.CallResponse{
-			FuncName:	info["execute_method"].GetStringValue(),
-			Message:	"failed to get cpu usage",
-			Severity:	pluginpb.SEVERITY_CRITICAL,
-			State:		pluginpb.STATE_FAILURE,
-			AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+			FuncName:   info["execute_method"].GetStringValue(),
+			Message:    "failed to get cpu usage",
+			Severity:   pluginpb.SEVERITY_CRITICAL,
+			State:      pluginpb.STATE_FAILURE,
+			AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 		}
 
 		return ret, err
@@ -87,11 +88,11 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	}
 
 	ret := sdk.CallResponse{
-		FuncName:	info["execute_method"].GetStringValue(),
-		Message:	message,
-		Severity:	severity,
-		State:		state,
-		AlertTypes:	[]pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+		FuncName:   info["execute_method"].GetStringValue(),
+		Message:    message,
+		Severity:   severity,
+		State:      state,
+		AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
 	}
 
 	return ret, nil
