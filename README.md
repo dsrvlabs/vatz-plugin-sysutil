@@ -1,6 +1,7 @@
 # vatz-plugin-sysutil
 vatz plugin for system utilization monitoring
-
+> Please, be advised that VATZ plugin supports only Linux operating systems, other operating systems may not operate properly.
+ 
 ## Plugins
 - cpu_monitor : monitor CPU utilization
 - disk_monitor : monitor disk space utilization
@@ -8,7 +9,8 @@ vatz plugin for system utilization monitoring
 - net_monitor : monitor network utilization
 
 ## Installation and Usage
-> Please make sure [Vatz](https://github.com/dsrvlabs/vatz) is running with proper configuration. [Vatz Installation Guide](https://github.com/dsrvlabs/vatz/blob/main/docs/installation.md)
+> Please make sure [`Vatz`](https://github.com/dsrvlabs/vatz) is running with proper configuration. [Vatz Installation Guide](https://github.com/dsrvlabs/vatz/blob/main/docs/installation.md).
+
 
 ### Install Plugins
 - Install with source
