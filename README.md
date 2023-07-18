@@ -162,3 +162,7 @@ Usage of ./net_monitor:
   -warning int
     	Network Traffic Warning threshold (in MBps) (default 100)
 ```
+
+## License
+
+`vatz-plugin-sysutil` is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also included in our repository in the `LICENSE` file.
