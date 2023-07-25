@@ -17,7 +17,7 @@ import (
 const (
 	defaultAddr     = "127.0.0.1"
 	defaultPort     = 9001
-	pluginName      = "vatz-plugin-solana-cpu-monitor"
+	pluginName      = "vatz-plugin-sysutil-cpu-monitor"
 	defaultUrgent   = 95
 	defaultWarning  = 90
 	defaultDuration = 0

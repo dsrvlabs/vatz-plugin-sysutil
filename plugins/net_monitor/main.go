@@ -21,7 +21,7 @@ import (
 const (
 	defaultAddr    = "127.0.0.1"
 	defaultPort    = 9004
-	pluginName     = "vatz-plugin-network-monitor"
+	pluginName     = "vatz-plugin-sysutil-network-monitor"
 	defaultUrgent  = 1000
 	defaultWarning = 100
 	INFO           = 0

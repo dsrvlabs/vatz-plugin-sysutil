@@ -29,7 +29,7 @@ type statusInfo struct {
 const (
 	defaultAddr    = "127.0.0.1"
 	defaultPort    = 9003
-	pluginName     = "vatz-plugin-solana-disk-monitor"
+	pluginName     = "vatz-plugin-sysutil-disk-monitor"
 	defaultUrgent  = 95
 	defaultWarning = 90
 	defaultPath    = "/"

@@ -16,7 +16,7 @@ import (
 const (
 	defaultAddr    = "127.0.0.1"
 	defaultPort    = 9002
-	pluginName     = "vatz-plugin-solana-mem-monitor"
+	pluginName     = "vatz-plugin-sysutil-mem-monitor"
 	defaultUrgent  = 95
 	defaultWarning = 90
 )
