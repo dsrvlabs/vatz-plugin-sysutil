@@ -87,11 +87,10 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 		if err != nil {
 			message = fmt.Sprint("failed to get disk usage on ", path)
 			ret := sdk.CallResponse{
-				FuncName:   info["execute_method"].GetStringValue(),
-				Message:    message,
-				Severity:   pluginpb.SEVERITY_CRITICAL,
-				State:      pluginpb.STATE_FAILURE,
-				AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+				FuncName: info["execute_method"].GetStringValue(),
+				Message:  message,
+				Severity: pluginpb.SEVERITY_CRITICAL,
+				State:    pluginpb.STATE_FAILURE,
 			}
 
 			return ret, err
@@ -133,11 +132,10 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	log.Debug().Str("module", "plugin").Msgf("severity : %s, state : %s, message : %s", severity.String(), state.String(), message)
 
 	ret := sdk.CallResponse{
-		FuncName:   info["execute_method"].GetStringValue(),
-		Message:    message,
-		Severity:   severity,
-		State:      state,
-		AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+		FuncName: info["execute_method"].GetStringValue(),
+		Message:  message,
+		Severity: severity,
+		State:    state,
 	}
 
 	return ret, nil

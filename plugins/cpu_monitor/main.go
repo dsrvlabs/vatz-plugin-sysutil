@@ -58,11 +58,10 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	percent, err := cpu.Percent(defaultDuration*time.Second, false)
 	if err != nil {
 		ret := sdk.CallResponse{
-			FuncName:   info["execute_method"].GetStringValue(),
-			Message:    "failed to get cpu usage",
-			Severity:   pluginpb.SEVERITY_CRITICAL,
-			State:      pluginpb.STATE_FAILURE,
-			AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+			FuncName: info["execute_method"].GetStringValue(),
+			Message:  "failed to get cpu usage",
+			Severity: pluginpb.SEVERITY_CRITICAL,
+			State:    pluginpb.STATE_FAILURE,
 		}
 
 		return ret, err
@@ -88,11 +87,10 @@ func pluginFeature(info, option map[string]*structpb.Value) (sdk.CallResponse, e
 	}
 
 	ret := sdk.CallResponse{
-		FuncName:   info["execute_method"].GetStringValue(),
-		Message:    message,
-		Severity:   severity,
-		State:      state,
-		AlertTypes: []pluginpb.ALERT_TYPE{pluginpb.ALERT_TYPE_DISCORD},
+		FuncName: info["execute_method"].GetStringValue(),
+		Message:  message,
+		Severity: severity,
+		State:    state,
 	}
 
 	return ret, nil
